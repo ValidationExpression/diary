@@ -1,0 +1,232 @@
+{% extends "base.html" %} {% block title %}设置 - 每日反思日记{% endblock %} {%
+block content %}
+<div class="card">
+  <div class="card-header bg-primary text-white">
+    <h5 class="mb-0"><i class="fas fa-cog me-2"></i>数据库设置</h5>
+  </div>
+  <div class="card-body">
+    <form method="post" id="setupForm">
+      <div class="mb-4">
+        <h5>选择数据库</h5>
+        <div class="form-check mb-2">
+          <input
+            class="form-check-input"
+            type="radio"
+            name="db_type"
+            id="newDb"
+            value="new"
+            checked
+          />
+          <label class="form-check-label" for="newDb"> 创建新数据库 </label>
+        </div>
+        <div class="form-check mb-3">
+          <input
+            class="form-check-input"
+            type="radio"
+            name="db_type"
+            id="existingDb"
+            value="existing"
+          />
+          <label class="form-check-label" for="existingDb">
+            使用现有数据库
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group mb-4">
+        <label class="form-label">数据库文件</label>
+        <div class="input-group">
+          <input
+            type="text"
+            class="form-control"
+            id="db_path"
+            name="db_path"
+            placeholder="选择或输入数据库文件路径"
+            required
+          />
+          <button type="button" class="btn btn-secondary" id="chooseFile">
+            <i class="fas fa-folder-open me-1"></i>选择位置
+          </button>
+        </div>
+        <div class="form-text" id="dbPathHelp">选择数据库文件的保存位置</div>
+        <div class="form-text text-muted mt-2">
+          <small
+            >*
+            如果无法选择现有数据库，请尝试手动输入完整路径，例如：D:\folder\diary.db</small
+          >
+        </div>
+        <div class="mt-2">
+          <span id="saveStatus" class="badge bg-success" style="display: none">
+            <i class="fas fa-check me-1"></i>路径已保存到本地
+          </span>
+        </div>
+      </div>
+
+      <div class="text-end">
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">
+          <i class="fas fa-times me-1"></i>取消
+        </a>
+        <button type="submit" class="btn btn-primary" id="saveButton">
+          <i class="fas fa-save me-1"></i>保存设置
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 添加一个隐藏的文件输入框 -->
+<input type="file" id="fileInput" accept=".db" style="display: none" />
+
+<div class="card mt-4">
+  <div class="card-header bg-info text-white">
+    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>使用帮助</h5>
+  </div>
+  <div class="card-body">
+    <h5>数据库文件说明</h5>
+    <p>您可以选择：</p>
+    <ul>
+      <li>
+        <strong>创建新数据库</strong>：在选择的位置创建一个全新的数据库文件
+      </li>
+      <li><strong>使用现有数据库</strong>：选择一个已经存在的日记数据库文件</li>
+    </ul>
+
+    <h5>数据库位置建议</h5>
+    <ul>
+      <li>
+        选择将数据库保存在本地磁盘上，例如：<code>D:\我的日记\diary.db</code>
+      </li>
+      <li>选择将数据库保存在云盘同步的文件夹中，便于多设备访问</li>
+      <li>定期备份数据库文件，以防数据丢失</li>
+    </ul>
+
+    <h5>数据迁移说明</h5>
+    <p>如果您想将日记数据迁移到另一台电脑：</p>
+    <ol>
+      <li>复制当前的数据库文件（.db文件）</li>
+      <li>在新电脑上安装本应用</li>
+      <li>在设置中选择"使用现有数据库"并选择复制的数据库文件</li>
+    </ol>
+  </div>
+</div>
+{% endblock %} {% block scripts %}
+<script>
+  $(document).ready(function () {
+    // 从本地存储加载之前的值
+    const savedDbType = localStorage.getItem("diary_db_type") || "new";
+    const savedDbPath = localStorage.getItem("diary_db_path") || "";
+
+    // 设置已保存的值
+    $(`input[name="db_type"][value="${savedDbType}"]`).prop("checked", true);
+    $("#db_path").val(savedDbPath);
+
+    // 如果有保存的路径，显示保存状态
+    if (savedDbPath) {
+      $("#saveStatus").show();
+    }
+
+    // 更新帮助文本
+    function updateHelpText() {
+      var dbType = $('input[name="db_type"]:checked').val();
+      var helpText =
+        dbType === "new"
+          ? "选择新数据库文件的保存位置"
+          : "选择现有的数据库文件";
+      $("#dbPathHelp").text(helpText);
+
+      // 保存选择到本地存储
+      localStorage.setItem("diary_db_type", dbType);
+    }
+
+    // 监听单选按钮变化
+    $('input[name="db_type"]').change(function () {
+      updateHelpText();
+    });
+
+    // 监听路径输入变化
+    $("#db_path").on("input change", function () {
+      const dbPath = $(this).val();
+      // 保存路径到本地存储
+      localStorage.setItem("diary_db_path", dbPath);
+      // 显示保存状态
+      $("#saveStatus").fadeIn();
+      // 3秒后隐藏
+      setTimeout(function () {
+        $("#saveStatus").fadeOut();
+      }, 3000);
+    });
+
+    // 文件选择按钮点击事件
+    $("#chooseFile").click(function () {
+      $("#fileInput").click();
+    });
+
+    // 文件选择改变事件
+    $("#fileInput").change(function (e) {
+      if (e.target.files.length > 0) {
+        const file = e.target.files[0];
+        console.log("选择的文件:", file); // 添加调试日志
+
+        // 获取文件路径
+        let filePath = "";
+        if (file.path) {
+          // Electron 环境
+          filePath = file.path;
+          console.log("Electron路径:", filePath);
+        } else {
+          // 浏览器环境
+          filePath = file.name;
+          console.log("浏览器路径:", filePath);
+
+          // 如果是Windows系统，可能需要添加一个假的路径前缀
+          if (navigator.platform.indexOf("Win") > -1) {
+            if (!filePath.includes(":\\")) {
+              // 假设保存在D盘的一个特定目录
+              filePath = "D:\\AI_Project_File\\diary_pro\\" + filePath;
+            }
+          }
+        }
+
+        console.log("最终路径:", filePath);
+
+        const dbType = $('input[name="db_type"]:checked').val();
+
+        // 如果是新数据库且没有.db后缀，添加它
+        const dbPath =
+          dbType === "new" && !filePath.toLowerCase().endsWith(".db")
+            ? filePath + ".db"
+            : filePath;
+
+        $("#db_path").val(dbPath);
+        // 保存到本地存储
+        localStorage.setItem("diary_db_path", dbPath);
+      }
+    });
+
+    // 表单提交前验证
+    $("#setupForm").submit(function (e) {
+      e.preventDefault();
+
+      const dbPath = $("#db_path").val();
+      const dbType = $('input[name="db_type"]:checked').val();
+
+      if (!dbPath) {
+        alert("请选择数据库文件位置");
+        return;
+      }
+
+      // 如果是现有数据库，检查文件是否存在
+      if (dbType === "existing" && !dbPath.toLowerCase().endsWith(".db")) {
+        alert("请选择有效的数据库文件（.db格式）");
+        return;
+      }
+
+      // 提交表单
+      this.submit();
+    });
+
+    // 初始化帮助文本
+    updateHelpText();
+  });
+</script>
+{% endblock %}

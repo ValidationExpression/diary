@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# SQLite数据库文件
+*.db
+*.sqlite
+*.sqlite3
+
+# 虚拟环境
+.env
+.venv
+venv/
+ENV/
+
+# IDE配置文件
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 程序配置
+settings.ini 

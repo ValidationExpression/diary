@@ -1,0 +1,205 @@
+{% extends "base.html" %} {% block title %}{% if diary %}编辑日记{% else
+%}新建日记{% endif %} - 每日反思日记{% endblock %} {% block head %}
+<!-- 引入富文本编辑器 Summernote -->
+<link
+  href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.css"
+  rel="stylesheet"
+/>
+<style>
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+  .quote-textarea {
+    min-height: 100px;
+  }
+  .note-editor {
+    margin-bottom: 1.5rem;
+  }
+</style>
+{% endblock %} {% block content %}
+<div class="card">
+  <div class="card-header bg-primary text-white">
+    <h5 class="mb-0">
+      {% if diary %}
+      <i class="fas fa-edit me-2"></i>编辑日记 {% else %}
+      <i class="fas fa-plus-circle me-2"></i>新建日记 {% endif %}
+    </h5>
+  </div>
+  <div class="card-body">
+    <form id="diaryForm">
+      {% if diary %}
+      <input type="hidden" name="diary_id" value="{{ diary.id }}" />
+      <input type="hidden" name="date" value="{{ diary.date }}" />
+      {% endif %}
+
+      <div class="row">
+        <!-- 日期显示 -->
+        <div class="col-12 mb-3">
+          <div class="d-flex justify-content-between align-items-center">
+            <h5 class="text-muted">
+              {% if diary %} {{ diary.date }} {% else %} 今天 ({{ current_date()
+              }}) {% endif %}
+            </h5>
+          </div>
+        </div>
+
+        <!-- 天气和心情 -->
+        <div class="col-md-6">
+          <div class="form-group">
+            <label for="weather" class="form-label">今日天气</label>
+            <input
+              type="text"
+              class="form-control"
+              id="weather"
+              name="weather"
+              placeholder="如: 🌤️"
+              value="{{ diary.weather if diary else '' }}"
+            />
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-group">
+            <label for="mood" class="form-label">今日心情</label>
+            <input
+              type="text"
+              class="form-control"
+              id="mood"
+              name="mood"
+              placeholder="如: 愉快"
+              value="{{ diary.mood if diary else '' }}"
+            />
+          </div>
+        </div>
+
+        <!-- 标题 -->
+        <div class="col-12">
+          <div class="form-group">
+            <label for="title" class="form-label">标题</label>
+            <input
+              type="text"
+              class="form-control"
+              id="title"
+              name="title"
+              placeholder="请输入日记标题"
+              value="{{ diary.title if diary else '' }}"
+              required
+            />
+          </div>
+        </div>
+
+        <!-- 今日语录 - 使用更大的文本框 -->
+        <div class="col-12">
+          <div class="form-group">
+            <label for="quote" class="form-label">今日语录</label>
+            <textarea
+              class="form-control quote-textarea"
+              id="quote"
+              name="quote"
+              placeholder="今日格言或感悟"
+            >
+{{ diary.quote if diary else '' }}</textarea
+            >
+          </div>
+        </div>
+
+        <!-- 内容 -->
+        <div class="col-12">
+          <div class="form-group">
+            <label for="content" class="form-label">内容</label>
+            <textarea class="form-control" id="content" name="content" required>
+{{ diary.content if diary else '' }}</textarea
+            >
+          </div>
+        </div>
+
+        <!-- 按钮 -->
+        <div class="col-12 text-end">
+          <a href="{{ url_for('index') }}" class="btn btn-secondary">
+            <i class="fas fa-times me-1"></i>取消
+          </a>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save me-1"></i>保存
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %} {% block scripts %}
+<!-- 引入富文本编辑器 Summernote JS -->
+<script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/lang/summernote-zh-CN.min.js"></script>
+<script>
+  $(document).ready(function () {
+    // 初始化富文本编辑器
+    $("#content").summernote({
+      lang: "zh-CN",
+      height: 300,
+      toolbar: [
+        ["style", ["style"]],
+        ["font", ["bold", "underline", "italic", "clear"]],
+        ["color", ["color"]],
+        ["para", ["ul", "ol", "paragraph"]],
+        ["table", ["table"]],
+        ["insert", ["link"]],
+        ["view", ["fullscreen", "codeview", "help"]],
+      ],
+      placeholder: "请输入日记内容...",
+    });
+
+    // 表单提交
+    $("#diaryForm").submit(function (e) {
+      e.preventDefault();
+      console.log("开始提交表单");
+
+      // 获取富文本编辑器的内容
+      var content = $("#content").summernote("code");
+      console.log("富文本内容:", content); // 添加日志
+
+      // 获取表单数据
+      var formData = new FormData(this);
+
+      // 更新content字段
+      formData.set("content", content);
+
+      // 打印表单数据
+      for (var pair of formData.entries()) {
+        console.log(pair[0] + ": " + pair[1]);
+      }
+
+      // 提交到服务器
+      $.ajax({
+        url: "{{ url_for('save_diary') }}",
+        type: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function (response) {
+          console.log("服务器响应:", response);
+          if (response.success) {
+            alert(response.message);
+            // 修改跳转逻辑
+            try {
+              console.log("准备跳转到首页");
+              var indexUrl = "{{ url_for('index') }}";
+              console.log("首页URL:", indexUrl);
+              window.location.href = indexUrl;
+            } catch (e) {
+              console.error("跳转失败:", e);
+              // 使用普通链接方式跳转
+              window.location = "/";
+            }
+          } else {
+            alert("保存失败: " + response.message);
+          }
+        },
+        error: function (xhr, status, error) {
+          console.error("AJAX错误:", status, error);
+          console.error("响应文本:", xhr.responseText);
+          alert("提交失败，请检查控制台获取详细信息");
+        },
+      });
+    });
+  });
+</script>
+{% endblock %}

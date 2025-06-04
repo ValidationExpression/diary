@@ -1,0 +1,96 @@
+{% extends "base.html" %} {% block title %}首页 - 每日反思日记{% endblock %} {%
+block content %}
+<div class="row">
+  <!-- 左侧日记列表 -->
+  <div class="col-md-4">
+    <div class="card mb-4">
+      <div class="card-header bg-primary text-white">
+        <h5 class="card-title mb-0">
+          <i class="fas fa-list me-2"></i>日记列表
+        </h5>
+      </div>
+      <div class="card-body p-0">
+        {% if diaries %}
+        <div class="list-group list-group-flush">
+          {% for diary in diaries %}
+          <a
+            href="{{ url_for('view_diary', diary_id=diary.id) }}"
+            class="list-group-item list-group-item-action"
+          >
+            <div class="d-flex w-100 justify-content-between">
+              <h6 class="mb-1">{{ diary.title }}</h6>
+              <small class="text-muted">{{ diary.date }}</small>
+            </div>
+            <div class="d-flex">
+              {% if diary.weather %}
+              <span class="badge bg-info me-1">{{ diary.weather }}</span>
+              {% endif %} {% if diary.mood %}
+              <span class="badge bg-warning me-1">{{ diary.mood }}</span>
+              {% endif %}
+            </div>
+          </a>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center p-4">
+          <p class="text-muted">还没有日记，开始创建吧！</p>
+          <a href="{{ url_for('new_diary') }}" class="btn btn-primary">
+            <i class="fas fa-plus-circle me-1"></i>写第一篇日记
+          </a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    <a href="{{ url_for('new_diary') }}" class="btn btn-success w-100">
+      <i class="fas fa-plus-circle me-1"></i>新建日记
+    </a>
+  </div>
+
+  <!-- 右侧欢迎信息 -->
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">欢迎使用每日反思日记</h5>
+      </div>
+      <div class="card-body">
+        <div class="mb-4">
+          <h2 class="text-center mb-4">记录每一天的成长与感悟</h2>
+          <p class="lead text-center">
+            选择左侧日记查看详情，或开始记录今天的反思。
+          </p>
+        </div>
+
+        <div class="row text-center">
+          <div class="col-md-4 mb-3">
+            <div class="feature-box p-3">
+              <i class="fas fa-pencil-alt fa-3x mb-3 text-primary"></i>
+              <h5>简单记录</h5>
+              <p>轻松记录每日反思和感悟</p>
+            </div>
+          </div>
+          <div class="col-md-4 mb-3">
+            <div class="feature-box p-3">
+              <i class="fas fa-chart-line fa-3x mb-3 text-primary"></i>
+              <h5>成长追踪</h5>
+              <p>回顾过去，见证自己的成长</p>
+            </div>
+          </div>
+          <div class="col-md-4 mb-3">
+            <div class="feature-box p-3">
+              <i class="fas fa-lightbulb fa-3x mb-3 text-primary"></i>
+              <h5>记录灵感</h5>
+              <p>捕捉每日的灵感和领悟</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="text-center mt-4">
+          <a href="{{ url_for('new_diary') }}" class="btn btn-lg btn-primary">
+            <i class="fas fa-pen me-2"></i>开始写日记
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
